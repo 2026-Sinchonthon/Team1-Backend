@@ -18,50 +18,62 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(GeneralException.class)
-    public ResponseEntity<ApiResponse<Void>> handleMemberException(
+    public ResponseEntity<ApiResponse<Void>> handleGeneralException(
             GeneralException e
     ) {
         BaseErrorCode errorCode = e.getErrorCode();
-        return ResponseEntity.status(errorCode.getHttpStatus())
+
+        return ResponseEntity
+                .status(errorCode.getHttpStatus())
                 .body(ApiResponse.onFailure(errorCode, null));
     }
 
-    // 그 외의 정의되지 않은 모든 예외 처리
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<String>> handleException(
-            Exception ex
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiResponse<Map<String, String>>> handleValidationException(
+            MethodArgumentNotValidException e
     ) {
-        BaseErrorCode code = GeneralErrorCode.INTERNAL_SERVER_ERROR;
-        return ResponseEntity.status(code.getHttpStatus())
-                .body(ApiResponse.onFailure(
-                                code,
-                                ex.getMessage()
+        Map<String, String> errors = new HashMap<>();
+
+        e.getBindingResult()
+                .getFieldErrors()
+                .forEach(error ->
+                        errors.put(
+                                error.getField(),
+                                error.getDefaultMessage()
                         )
                 );
-    }
-
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<Map<String, String>>> handleMethodArgumentNotValidException(
-            MethodArgumentNotValidException e
-    ){
-        Map<String, String> errors = new HashMap<>();
-        e.getBindingResult().getFieldErrors().forEach(error -> {
-            errors.put(error.getField(), error.getDefaultMessage());
-        });
 
         BaseErrorCode code = GeneralErrorCode.BAD_REQUEST;
-        return ResponseEntity.status(code.getHttpStatus())
+
+        return ResponseEntity
+                .status(code.getHttpStatus())
                 .body(ApiResponse.onFailure(code, errors));
     }
 
     @ExceptionHandler({
             HttpMessageNotReadableException.class,
             MissingServletRequestParameterException.class,
-            HandlerMethodValidationException.class
+            HandlerMethodValidationException.class,
+            IllegalArgumentException.class,
+            IllegalStateException.class
     })
     public ResponseEntity<ApiResponse<Void>> handleBadRequest(Exception e) {
+
         BaseErrorCode code = GeneralErrorCode.BAD_REQUEST;
-        return ResponseEntity.status(code.getHttpStatus())
+
+        return ResponseEntity
+                .status(code.getHttpStatus())
                 .body(ApiResponse.onFailure(code, null));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse<String>> handleException(
+            Exception e
+    ) {
+        BaseErrorCode code = GeneralErrorCode.INTERNAL_SERVER_ERROR;
+
+        return ResponseEntity
+                .status(code.getHttpStatus())
+                .body(ApiResponse.onFailure(code, e.getMessage()));
     }
 }
