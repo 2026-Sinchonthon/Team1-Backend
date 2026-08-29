@@ -12,7 +12,8 @@ import com.example.shinchonton_backend.domain.partyrequest.entity.PartyRequest;
 import com.example.shinchonton_backend.domain.partyrequest.repository.PartyRequestRepository;
 import com.example.shinchonton_backend.domain.store.entity.Store;
 import com.example.shinchonton_backend.domain.store.repository.StoreRepository;
-import com.example.shinchonton_backend.global.exception.BusinessException;
+import com.example.shinchonton_backend.global.apiPayload.code.status.GeneralErrorCode;
+import com.example.shinchonton_backend.global.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,13 +35,13 @@ public class OfferService {
     public OfferRes createOffer(Long requestId, OfferCreateReq request) {
         // 제안 생성 중 학생이 다른 제안을 수락할 수 있으므로 리퀘스트를 잠그고 상태를 확인한다.
         PartyRequest partyRequest = partyRequestRepository.findByIdForUpdate(requestId)
-                .orElseThrow(() -> new BusinessException("리퀘스트를 찾을 수 없습니다."));
+                .orElseThrow(() -> new GeneralException(GeneralErrorCode.NOT_FOUND));
 
         Store store = storeRepository.findById(request.storeId())
-                .orElseThrow(() -> new BusinessException("가게를 찾을 수 없습니다."));
+                .orElseThrow(() -> new GeneralException(GeneralErrorCode.NOT_FOUND));
 
         if (offerRepository.existsByPartyRequest_IdAndStore_Id(requestId, request.storeId())) {
-            throw new BusinessException("이미 해당 리퀘스트에 제안을 보낸 가게입니다.");
+            throw new GeneralException(GeneralErrorCode.BAD_REQUEST);
         }
 
         Offer offer = Offer.propose(
@@ -57,7 +58,7 @@ public class OfferService {
 
     public List<OfferRes> getOffers(Long requestId) {
         if (!partyRequestRepository.existsById(requestId)) {
-            throw new BusinessException("리퀘스트를 찾을 수 없습니다.");
+            throw new GeneralException(GeneralErrorCode.NOT_FOUND);
         }
 
         return offerRepository.findAllByPartyRequest_IdOrderByCreatedAtDesc(requestId)
@@ -69,14 +70,14 @@ public class OfferService {
     @Transactional
     public DealRes acceptOffer(Long offerId) {
         Offer acceptedOffer = offerRepository.findById(offerId)
-                .orElseThrow(() -> new BusinessException("제안을 찾을 수 없습니다."));
+                .orElseThrow(() -> new GeneralException(GeneralErrorCode.NOT_FOUND));
 
         // 같은 리퀘스트의 제안이 동시에 수락되는 것을 막기 위해 리퀘스트 행을 잠근다.
         PartyRequest partyRequest = partyRequestRepository.findByIdForUpdate(acceptedOffer.getPartyRequest().getId())
-                .orElseThrow(() -> new BusinessException("리퀘스트를 찾을 수 없습니다."));
+                .orElseThrow(() -> new GeneralException(GeneralErrorCode.NOT_FOUND));
 
         if (dealRepository.existsByPartyRequest_Id(partyRequest.getId())) {
-            throw new BusinessException("이미 체결된 리퀘스트입니다.");
+            throw new GeneralException(GeneralErrorCode.BAD_REQUEST);
         }
 
         LocalDateTime now = LocalDateTime.now();

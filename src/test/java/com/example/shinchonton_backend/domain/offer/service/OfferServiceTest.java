@@ -16,7 +16,7 @@ import com.example.shinchonton_backend.domain.partyrequest.repository.PartyReque
 import com.example.shinchonton_backend.domain.store.entity.Region;
 import com.example.shinchonton_backend.domain.store.entity.Store;
 import com.example.shinchonton_backend.domain.store.repository.StoreRepository;
-import com.example.shinchonton_backend.global.exception.BusinessException;
+import com.example.shinchonton_backend.global.exception.GeneralException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,8 +87,7 @@ class OfferServiceTest {
         offerService.createOffer(partyRequest.getId(), request);
 
         assertThatThrownBy(() -> offerService.createOffer(partyRequest.getId(), request))
-                .isInstanceOf(BusinessException.class)
-                .hasMessage("이미 해당 리퀘스트에 제안을 보낸 가게입니다.");
+                .isInstanceOf(GeneralException.class);
     }
 
     @Test
@@ -121,8 +120,7 @@ class OfferServiceTest {
     @Test
     void getOffers_throwsWhenRequestDoesNotExist() {
         assertThatThrownBy(() -> offerService.getOffers(999L))
-                .isInstanceOf(BusinessException.class)
-                .hasMessage("리퀘스트를 찾을 수 없습니다.");
+                .isInstanceOf(GeneralException.class);
     }
 
     private PartyRequest savePartyRequest() {

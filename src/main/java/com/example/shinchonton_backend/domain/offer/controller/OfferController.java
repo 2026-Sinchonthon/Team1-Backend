@@ -4,7 +4,7 @@ import com.example.shinchonton_backend.domain.offer.dto.req.OfferCreateReq;
 import com.example.shinchonton_backend.domain.offer.dto.res.DealRes;
 import com.example.shinchonton_backend.domain.offer.dto.res.OfferRes;
 import com.example.shinchonton_backend.domain.offer.service.OfferService;
-import com.example.shinchonton_backend.global.common.ApiResponse;
+import com.example.shinchonton_backend.global.apiPayload.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -30,16 +30,16 @@ public class OfferController {
     ) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(ApiResponse.success(offerService.createOffer(requestId, request), "제안이 발송되었습니다."));
+                .body(ApiResponse.onSuccess("제안이 발송되었습니다.", offerService.createOffer(requestId, request)));
     }
 
     @GetMapping("/requests/{requestId}/offers")
     public ApiResponse<List<OfferRes>> getOffers(@PathVariable Long requestId) {
-        return ApiResponse.success(offerService.getOffers(requestId));
+        return ApiResponse.onSuccess("제안 목록 조회에 성공했습니다.", offerService.getOffers(requestId));
     }
 
     @PostMapping("/offers/{offerId}/accept")
     public ApiResponse<DealRes> acceptOffer(@PathVariable Long offerId) {
-        return ApiResponse.success(offerService.acceptOffer(offerId), "제안이 수락되어 체결되었습니다.");
+        return ApiResponse.onSuccess("제안이 수락되어 체결되었습니다.", offerService.acceptOffer(offerId));
     }
 }
