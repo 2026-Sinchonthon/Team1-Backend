@@ -48,6 +48,9 @@ public class Offer extends BaseTimeEntity {
     @Column(name = "offered_total_price", nullable = false)
     private long offeredTotalPrice;
 
+    @Column(name = "discount_rate", nullable = false)
+    private int discountRate;
+
     @Column(name = "benefit_description", length = 255)
     private String benefitDescription;
 
@@ -65,6 +68,7 @@ public class Offer extends BaseTimeEntity {
             PartyRequest partyRequest,
             Store store,
             long offeredTotalPrice,
+            int discountRate,
             String benefitDescription,
             String message
     ) {
@@ -76,6 +80,9 @@ public class Offer extends BaseTimeEntity {
         }
         if (offeredTotalPrice <= 0) {
             throw new IllegalArgumentException("제안 총액은 0원보다 커야 합니다.");
+        }
+        if (discountRate < 0 || discountRate > 100) {
+            throw new IllegalArgumentException("할인율은 0 이상 100 이하여야 합니다.");
         }
         if (message == null || message.isBlank()) {
             throw new IllegalArgumentException("제안 메시지는 비어 있을 수 없습니다.");
@@ -89,6 +96,7 @@ public class Offer extends BaseTimeEntity {
         this.partyRequest = partyRequest;
         this.store = store;
         this.offeredTotalPrice = offeredTotalPrice;
+        this.discountRate = discountRate;
         this.benefitDescription = benefitDescription;
         this.message = message;
         this.status = OfferStatus.PENDING;
@@ -98,10 +106,11 @@ public class Offer extends BaseTimeEntity {
             PartyRequest partyRequest,
             Store store,
             long offeredTotalPrice,
+            int discountRate,
             String benefitDescription,
             String message
     ) {
-        return new Offer(partyRequest, store, offeredTotalPrice, benefitDescription, message);
+        return new Offer(partyRequest, store, offeredTotalPrice, discountRate, benefitDescription, message);
     }
 
     public boolean isOverBudget() {
