@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface StoreRepository extends JpaRepository<Store, Long> {
 
-    List<Store> findAllByMerchantId(Long merchantId);
+    List<Store> findAllByMerchantIdOrderByCreatedAtDesc(Long merchantId);
 }
