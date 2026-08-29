@@ -6,6 +6,7 @@ import com.example.shinchonton_backend.domain.partyrequest.dto.res.PartyRequestD
 import com.example.shinchonton_backend.domain.partyrequest.dto.res.PartyRequestSummaryRes;
 import com.example.shinchonton_backend.domain.partyrequest.service.PartyRequestService;
 import com.example.shinchonton_backend.global.apiPayload.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/requests")
 @RequiredArgsConstructor
+@Tag(name = "PartyRequest", description = "단체 예약 리퀘스트 API")
 public class PartyRequestController {
 
     private final PartyRequestService partyRequestService;

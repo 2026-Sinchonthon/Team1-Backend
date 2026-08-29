@@ -5,6 +5,7 @@ import com.example.shinchonton_backend.domain.offer.dto.res.DealRes;
 import com.example.shinchonton_backend.domain.offer.dto.res.OfferRes;
 import com.example.shinchonton_backend.domain.offer.service.OfferService;
 import com.example.shinchonton_backend.global.apiPayload.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
+@Tag(name = "Offer", description = "가게 제안과 체결 API")
 public class OfferController {
 
     private final OfferService offerService;
