@@ -2,9 +2,11 @@ package com.example.shinchonton_backend.domain.offer.controller;
 
 import com.example.shinchonton_backend.domain.offer.dto.req.OfferCreateReq;
 import com.example.shinchonton_backend.domain.offer.dto.res.DealRes;
+import com.example.shinchonton_backend.domain.offer.dto.res.OfferDetailRes;
 import com.example.shinchonton_backend.domain.offer.dto.res.OfferRes;
 import com.example.shinchonton_backend.domain.offer.service.OfferService;
 import com.example.shinchonton_backend.global.apiPayload.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +40,12 @@ public class OfferController {
     @GetMapping("/requests/{requestId}/offers")
     public ApiResponse<List<OfferRes>> getOffers(@PathVariable Long requestId) {
         return ApiResponse.onSuccess("제안 목록 조회에 성공했습니다.", offerService.getOffers(requestId));
+    }
+
+    @GetMapping("/offers/{offerId}")
+    @Operation(summary = "제안 상세 조회")
+    public ApiResponse<OfferDetailRes> getOffer(@PathVariable Long offerId) {
+        return ApiResponse.onSuccess("제안 상세 조회에 성공했습니다.", offerService.getOffer(offerId));
     }
 
     @PostMapping("/offers/{offerId}/accept")

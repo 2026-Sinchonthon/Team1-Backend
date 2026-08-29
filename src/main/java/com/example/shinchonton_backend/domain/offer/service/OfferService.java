@@ -4,6 +4,7 @@ import com.example.shinchonton_backend.domain.deal.entity.Deal;
 import com.example.shinchonton_backend.domain.deal.repository.DealRepository;
 import com.example.shinchonton_backend.domain.offer.dto.req.OfferCreateReq;
 import com.example.shinchonton_backend.domain.offer.dto.res.DealRes;
+import com.example.shinchonton_backend.domain.offer.dto.res.OfferDetailRes;
 import com.example.shinchonton_backend.domain.offer.dto.res.OfferRes;
 import com.example.shinchonton_backend.domain.offer.entity.Offer;
 import com.example.shinchonton_backend.domain.offer.entity.OfferStatus;
@@ -65,6 +66,13 @@ public class OfferService {
                 .stream()
                 .map(OfferRes::from)
                 .toList();
+    }
+
+    public OfferDetailRes getOffer(Long offerId) {
+        Offer offer = offerRepository.findById(offerId)
+                .orElseThrow(() -> new GeneralException(GeneralErrorCode.NOT_FOUND));
+
+        return OfferDetailRes.from(offer);
     }
 
     @Transactional

@@ -6,6 +6,7 @@ import com.example.shinchonton_backend.domain.member.entity.MemberRole;
 import com.example.shinchonton_backend.domain.member.repository.MemberRepository;
 import com.example.shinchonton_backend.domain.offer.dto.req.OfferCreateReq;
 import com.example.shinchonton_backend.domain.offer.dto.res.DealRes;
+import com.example.shinchonton_backend.domain.offer.dto.res.OfferDetailRes;
 import com.example.shinchonton_backend.domain.offer.dto.res.OfferRes;
 import com.example.shinchonton_backend.domain.offer.entity.Offer;
 import com.example.shinchonton_backend.domain.offer.entity.OfferStatus;
@@ -87,6 +88,41 @@ class OfferServiceTest {
         offerService.createOffer(partyRequest.getId(), request);
 
         assertThatThrownBy(() -> offerService.createOffer(partyRequest.getId(), request))
+                .isInstanceOf(GeneralException.class);
+    }
+
+    @Test
+    void getOffer_returnsDetailForSelectedOffer() {
+        PartyRequest partyRequest = savePartyRequest();
+        Store store = saveStore("merchant1", "신촌 테스트포차");
+        OfferRes createdOffer = offerService.createOffer(
+                partyRequest.getId(),
+                new OfferCreateReq(
+                        store.getId(),
+                        270_000,
+                        10,
+                        "음료 서비스",
+                        "단체석 준비 가능합니다."
+                )
+        );
+
+        OfferDetailRes result = offerService.getOffer(createdOffer.offerId());
+
+        assertThat(result.offerId()).isEqualTo(createdOffer.offerId());
+        assertThat(result.requestId()).isEqualTo(partyRequest.getId());
+        assertThat(result.storeId()).isEqualTo(store.getId());
+        assertThat(result.storeName()).isEqualTo("신촌 테스트포차");
+        assertThat(result.message()).isEqualTo("단체석 준비 가능합니다.");
+        assertThat(result.benefitDescription()).isEqualTo("음료 서비스");
+        assertThat(result.tableCount()).isEqualTo(6);
+        assertThat(result.perTableOfferedPrice()).isEqualTo(45_000);
+        assertThat(result.offeredTotalPrice()).isEqualTo(270_000);
+        assertThat(result.status()).isEqualTo(OfferStatus.PENDING);
+    }
+
+    @Test
+    void getOffer_throwsWhenOfferDoesNotExist() {
+        assertThatThrownBy(() -> offerService.getOffer(999L))
                 .isInstanceOf(GeneralException.class);
     }
 
