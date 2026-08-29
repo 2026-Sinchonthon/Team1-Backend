@@ -58,7 +58,7 @@ public class Deal {
         if (acceptedOffer == null || acceptedOffer.getStatus() != OfferStatus.ACCEPTED) {
             throw new IllegalArgumentException("수락된 제안이 필요합니다.");
         }
-        if (acceptedOffer.getPartyRequest() != partyRequest) {
+        if (!acceptedOffer.getPartyRequest().getId().equals(partyRequest.getId())) {
             throw new IllegalArgumentException("제안과 리퀘스트가 일치하지 않습니다.");
         }
         this.partyRequest = partyRequest;
