@@ -4,9 +4,12 @@ import com.example.shinchonton_backend.global.apiPayload.ApiResponse;
 import com.example.shinchonton_backend.global.apiPayload.code.BaseErrorCode;
 import com.example.shinchonton_backend.global.apiPayload.code.status.GeneralErrorCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -49,5 +52,16 @@ public class GlobalExceptionHandler {
         BaseErrorCode code = GeneralErrorCode.BAD_REQUEST;
         return ResponseEntity.status(code.getHttpStatus())
                 .body(ApiResponse.onFailure(code, errors));
+    }
+
+    @ExceptionHandler({
+            HttpMessageNotReadableException.class,
+            MissingServletRequestParameterException.class,
+            HandlerMethodValidationException.class
+    })
+    public ResponseEntity<ApiResponse<Void>> handleBadRequest(Exception e) {
+        BaseErrorCode code = GeneralErrorCode.BAD_REQUEST;
+        return ResponseEntity.status(code.getHttpStatus())
+                .body(ApiResponse.onFailure(code, null));
     }
 }
