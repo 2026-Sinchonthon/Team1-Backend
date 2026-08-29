@@ -6,6 +6,11 @@ import com.example.shinchonton_backend.domain.store.service.MenuCommandService;
 import com.example.shinchonton_backend.domain.store.service.StoreCommandService;
 import com.example.shinchonton_backend.domain.store.service.StoreQueryService;
 import com.example.shinchonton_backend.global.apiPayload.ApiResponse;
+import com.example.shinchonton_backend.global.config.SwaggerConfig;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +27,7 @@ import java.net.URI;
 @RestController
 @RequestMapping("/stores")
 @RequiredArgsConstructor
+@Tag(name = "Store", description = "가게와 메뉴 관리 API")
 public class StoreController {
 
     private final StoreCommandService storeCommandService;
@@ -32,7 +38,12 @@ public class StoreController {
      * 가게 등록
      */
     @PostMapping
+    @Operation(
+            summary = "가게 등록",
+            security = @SecurityRequirement(name = SwaggerConfig.MEMBER_ID_SCHEME)
+    )
     public ResponseEntity<ApiResponse<StoreResponseDto.Create>> registerStore(
+            @Parameter(description = "가게를 등록하는 회원 ID", required = true, example = "1")
             @RequestHeader("X-Member-Id") Long memberId,
             @Valid @RequestBody StoreRequestDto.Create request
     ) {
@@ -51,8 +62,14 @@ public class StoreController {
      * 메뉴 일괄 등록
      */
     @PostMapping("/{storeId}/menus")
+    @Operation(
+            summary = "메뉴 일괄 등록",
+            security = @SecurityRequirement(name = SwaggerConfig.MEMBER_ID_SCHEME)
+    )
     public ResponseEntity<ApiResponse<StoreResponseDto.MenuBulkCreate>> registerMenus(
+            @Parameter(description = "가게 소유 회원 ID", required = true, example = "1")
             @RequestHeader("X-Member-Id") Long memberId,
+            @Parameter(description = "가게 ID", required = true, example = "1")
             @PathVariable Long storeId,
             @Valid @RequestBody StoreRequestDto.MenuBulkCreate request
     ) {
@@ -75,7 +92,12 @@ public class StoreController {
      * 내 가게 목록 조회
      */
     @GetMapping("/mine")
+    @Operation(
+            summary = "내 가게 목록 조회",
+            security = @SecurityRequirement(name = SwaggerConfig.MEMBER_ID_SCHEME)
+    )
     public ResponseEntity<ApiResponse<StoreResponseDto.Mine>> getMyStores(
+            @Parameter(description = "조회할 회원 ID", required = true, example = "1")
             @RequestHeader("X-Member-Id") Long memberId
     ) {
         StoreResponseDto.Mine response =
@@ -93,7 +115,9 @@ public class StoreController {
      * 가게 상세 조회
      */
     @GetMapping("/{storeId}")
+    @Operation(summary = "가게 상세 조회")
     public ResponseEntity<ApiResponse<StoreResponseDto.Detail>> getStoreDetail(
+            @Parameter(description = "가게 ID", required = true, example = "1")
             @PathVariable Long storeId
     ) {
         StoreResponseDto.Detail response =
