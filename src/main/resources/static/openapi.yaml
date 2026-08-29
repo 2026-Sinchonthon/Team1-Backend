@@ -1,0 +1,636 @@
+openapi: 3.0.3
+info:
+  title: 신촌쿵야 API
+  version: 1.0.0
+  description: 대학 단체 술자리 역경매 매칭 플랫폼의 P0 API 계약입니다. 인증 API와 메시지 API는 범위에서 제외합니다.
+servers:
+  - url: http://localhost:8080
+    description: 로컬 개발 서버
+tags:
+  - name: Store
+    description: 가게와 메뉴 관리
+  - name: PartyRequest
+    description: 단체 예약 리퀘스트
+  - name: Offer
+    description: 가게 제안과 체결
+  - name: Recommendation
+    description: AI 안주 조합 추천
+paths:
+  /stores:
+    post:
+      tags: [Store]
+      summary: 가게 등록
+      operationId: createStore
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StoreCreateReq'
+            example:
+              merchantId: 2
+              name: 신촌포차
+              region: SINCHON
+              address: 서울 서대문구 연세로 1
+              maxCapacity: 80
+              openTime: '17:00:00'
+              closeTime: '02:00:00'
+              description: 단체 예약 가능한 포차
+      responses:
+        '201':
+          description: 가게 등록 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StoreCreateResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /stores/{id}/menus:
+    post:
+      tags: [Store]
+      summary: 메뉴 일괄 등록
+      operationId: createMenus
+      parameters:
+        - $ref: '#/components/parameters/StoreId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MenuBulkCreateReq'
+      responses:
+        '201':
+          description: 메뉴 일괄 등록 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MenuBulkCreateResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /requests:
+    post:
+      tags: [PartyRequest]
+      summary: 리퀘스트 등록
+      operationId: createPartyRequest
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartyRequestCreateReq'
+      responses:
+        '201':
+          description: 리퀘스트 등록 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartyRequestCreateResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    get:
+      tags: [PartyRequest]
+      summary: 사장님용 리퀘스트 목록
+      description: 가게가 수용할 수 있고 예약 시간이 지나지 않은 OPEN 리퀘스트를 최신순으로 조회합니다.
+      operationId: getAvailablePartyRequests
+      parameters:
+        - name: storeId
+          in: query
+          required: true
+          description: 조회 기준 가게 ID
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        '200':
+          description: 조회 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartyRequestListResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /requests/mine:
+    get:
+      tags: [PartyRequest]
+      summary: 학생 본인 리퀘스트 목록
+      operationId: getMyPartyRequests
+      parameters:
+        - name: studentId
+          in: query
+          required: true
+          description: 인증 구현 전 임시 학생 회원 ID
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        '200':
+          description: 조회 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartyRequestListResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /requests/{id}:
+    get:
+      tags: [PartyRequest]
+      summary: 리퀘스트 상세 조회
+      operationId: getPartyRequest
+      parameters:
+        - $ref: '#/components/parameters/PartyRequestId'
+      responses:
+        '200':
+          description: 조회 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartyRequestDetailResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /requests/{id}/offers:
+    post:
+      tags: [Offer]
+      summary: 제안 발송
+      operationId: createOffer
+      parameters:
+        - $ref: '#/components/parameters/PartyRequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OfferCreateReq'
+      responses:
+        '201':
+          description: 제안 발송 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OfferCreateResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    get:
+      tags: [Offer]
+      summary: 리퀘스트의 제안 목록
+      operationId: getOffers
+      parameters:
+        - $ref: '#/components/parameters/PartyRequestId'
+        - name: studentId
+          in: query
+          required: true
+          description: 리퀘스트 소유권 확인용 학생 회원 ID
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        '200':
+          description: 조회 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OfferListResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /offers/{id}/accept:
+    post:
+      tags: [Offer]
+      summary: 제안 수락 및 체결
+      operationId: acceptOffer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 수락할 제안 ID
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OfferAcceptReq'
+      responses:
+        '200':
+          description: 체결 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DealResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /recommend:
+    post:
+      tags: [Recommendation]
+      summary: AI 안주 조합 추천
+      description: 가게 메뉴 중 인원과 예산에 맞는 안주 조합을 추천합니다.
+      operationId: recommendMenuCombination
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecommendationReq'
+      responses:
+        '200':
+          description: 추천 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecommendationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+components:
+  parameters:
+    StoreId:
+      name: id
+      in: path
+      required: true
+      description: 가게 ID
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+    PartyRequestId:
+      name: id
+      in: path
+      required: true
+      description: 리퀘스트 ID
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+  responses:
+    BadRequest:
+      description: 요청값 또는 검증 실패
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationErrorResponse'
+    Forbidden:
+      description: 해당 리소스에 접근할 권한이 없음
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            isSuccess: false
+            code: COMMON403_1
+            message: 접근이 금지되었습니다.
+            result: null
+            error: null
+    NotFound:
+      description: 요청한 리소스를 찾을 수 없음
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            isSuccess: false
+            code: COMMON404_1
+            message: 해당 리소스를 찾을 수 없습니다
+            result: null
+            error: null
+    Conflict:
+      description: 중복 제안 또는 이미 처리된 상태
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            isSuccess: false
+            code: COMMON409_1
+            message: 현재 상태에서는 요청을 처리할 수 없습니다.
+            result: null
+            error: null
+    InternalServerError:
+      description: 서버 내부 오류
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            isSuccess: false
+            code: COMMON500_1
+            message: 서버 내부 에러가 발생했습니다.
+            result: null
+            error: null
+  schemas:
+    StoreCreateReq:
+      type: object
+      required: [merchantId, name, region, address, maxCapacity]
+      properties:
+        merchantId: { type: integer, format: int64, minimum: 1, description: 인증 구현 전 임시 사장님 회원 ID }
+        name: { type: string, minLength: 1, maxLength: 100 }
+        region: { $ref: '#/components/schemas/Region' }
+        address: { type: string, minLength: 1, maxLength: 255 }
+        maxCapacity: { type: integer, minimum: 1 }
+        openTime: { type: string, format: time, nullable: true, example: '17:00:00' }
+        closeTime: { type: string, format: time, nullable: true, example: '02:00:00' }
+        description: { type: string, maxLength: 500, nullable: true }
+    MenuBulkCreateReq:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/MenuCreateReq'
+      example:
+        items:
+          - name: 모둠전
+            price: 25000
+            category: MAIN
+            servingSize: 4
+          - name: 어묵탕
+            price: 18000
+            category: SOUP
+            servingSize: 3
+    MenuCreateReq:
+      type: object
+      required: [name, price, category]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 100 }
+        price: { type: integer, format: int64, minimum: 1 }
+        category: { $ref: '#/components/schemas/MenuCategory' }
+        servingSize: { type: integer, minimum: 1, nullable: true }
+    PartyRequestCreateReq:
+      type: object
+      required: [studentId, groupName, purpose, headcount, reservedAt, totalBudget, baseFoodBudget]
+      properties:
+        studentId: { type: integer, format: int64, minimum: 1, description: 인증 구현 전 임시 학생 회원 ID }
+        groupName: { type: string, minLength: 1, maxLength: 30 }
+        purpose: { type: string, minLength: 1, maxLength: 30 }
+        headcount: { type: integer, minimum: 10, maximum: 300 }
+        reservedAt: { type: string, format: date-time, description: 현재 이후의 예약 일시 }
+        preferredRegion: { allOf: [{ $ref: '#/components/schemas/Region' }], nullable: true }
+        totalBudget: { type: integer, format: int64, minimum: 10000 }
+        baseFoodBudget: { type: integer, format: int64, minimum: 1, description: 총예산 이하 }
+        note: { type: string, maxLength: 500, nullable: true }
+      example:
+        studentId: 1
+        groupName: 컴퓨터공학과 학생회
+        purpose: 개강총회
+        headcount: 40
+        reservedAt: '2026-09-10T19:00:00'
+        preferredRegion: SINCHON
+        totalBudget: 800000
+        baseFoodBudget: 400000
+        note: 빔프로젝터가 있으면 좋습니다.
+    OfferCreateReq:
+      type: object
+      required: [storeId, offeredTotalPrice, message]
+      properties:
+        storeId: { type: integer, format: int64, minimum: 1 }
+        offeredTotalPrice: { type: integer, format: int64, minimum: 1 }
+        benefitDescription: { type: string, maxLength: 255, nullable: true }
+        message: { type: string, minLength: 1, maxLength: 500 }
+      example:
+        storeId: 1
+        offeredTotalPrice: 720000
+        benefitDescription: 음료 10병 서비스
+        message: 단체석 전체 대관 가능합니다.
+    OfferAcceptReq:
+      type: object
+      required: [studentId]
+      properties:
+        studentId: { type: integer, format: int64, minimum: 1, description: 리퀘스트 소유권 확인용 학생 ID }
+    RecommendationReq:
+      type: object
+      required: [storeId, headcount, budget]
+      properties:
+        storeId: { type: integer, format: int64, minimum: 1 }
+        headcount: { type: integer, minimum: 1 }
+        budget: { type: integer, format: int64, minimum: 1 }
+        preference: { type: string, maxLength: 200, nullable: true, example: 국물 메뉴를 포함하고 매운 음식은 제외해 주세요. }
+    StoreCreateResult:
+      type: object
+      required: [storeId]
+      properties:
+        storeId: { type: integer, format: int64, example: 1 }
+    MenuBulkCreateResult:
+      type: object
+      required: [menuIds]
+      properties:
+        menuIds:
+          type: array
+          items: { type: integer, format: int64 }
+          example: [1, 2]
+    PartyRequestCreateResult:
+      type: object
+      required: [requestId]
+      properties:
+        requestId: { type: integer, format: int64, example: 1 }
+    PartyRequestSummary:
+      type: object
+      required: [id, groupName, purpose, headcount, reservedAt, totalBudget, tableCount, perTableFoodBudget, status, createdAt]
+      properties:
+        id: { type: integer, format: int64 }
+        groupName: { type: string }
+        purpose: { type: string }
+        headcount: { type: integer }
+        reservedAt: { type: string, format: date-time }
+        preferredRegion: { allOf: [{ $ref: '#/components/schemas/Region' }], nullable: true }
+        totalBudget: { type: integer, format: int64 }
+        tableCount: { type: integer }
+        perTableFoodBudget: { type: integer, format: int64 }
+        status: { $ref: '#/components/schemas/PartyRequestStatus' }
+        createdAt: { type: string, format: date-time }
+    PartyRequestDetail:
+      allOf:
+        - $ref: '#/components/schemas/PartyRequestSummary'
+        - type: object
+          required: [studentId, baseFoodBudget]
+          properties:
+            studentId: { type: integer, format: int64 }
+            baseFoodBudget: { type: integer, format: int64 }
+            note: { type: string, nullable: true }
+    OfferCreateResult:
+      type: object
+      required: [offerId]
+      properties:
+        offerId: { type: integer, format: int64 }
+    OfferSummary:
+      type: object
+      required: [id, requestId, storeId, storeName, offeredTotalPrice, message, status, createdAt]
+      properties:
+        id: { type: integer, format: int64 }
+        requestId: { type: integer, format: int64 }
+        storeId: { type: integer, format: int64 }
+        storeName: { type: string }
+        offeredTotalPrice: { type: integer, format: int64 }
+        benefitDescription: { type: string, nullable: true }
+        message: { type: string }
+        status: { $ref: '#/components/schemas/OfferStatus' }
+        acceptedAt: { type: string, format: date-time, nullable: true }
+        createdAt: { type: string, format: date-time }
+    DealResult:
+      type: object
+      required: [dealId, requestId, acceptedOfferId, matchedAt]
+      properties:
+        dealId: { type: integer, format: int64 }
+        requestId: { type: integer, format: int64 }
+        acceptedOfferId: { type: integer, format: int64 }
+        matchedAt: { type: string, format: date-time }
+    RecommendationItem:
+      type: object
+      required: [menuId, name, unitPrice, quantity, subtotal]
+      properties:
+        menuId: { type: integer, format: int64 }
+        name: { type: string }
+        unitPrice: { type: integer, format: int64 }
+        quantity: { type: integer, minimum: 1 }
+        subtotal: { type: integer, format: int64 }
+    RecommendationResult:
+      type: object
+      required: [items, totalPrice, remainingBudget, reason]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/RecommendationItem' }
+        totalPrice: { type: integer, format: int64 }
+        remainingBudget: { type: integer, format: int64 }
+        reason: { type: string }
+    ErrorResponse:
+      type: object
+      required: [isSuccess, code, message]
+      properties:
+        isSuccess: { type: boolean, example: false }
+        code: { type: string, example: COMMON404_1 }
+        message: { type: string, example: 해당 리소스를 찾을 수 없습니다 }
+        result: { nullable: true }
+        error: { nullable: true }
+    ValidationErrorResponse:
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+        - type: object
+          properties:
+            error:
+              type: object
+              additionalProperties: { type: string }
+              example:
+                headcount: 인원은 10명 이상이어야 합니다.
+    Region:
+      type: string
+      enum: [SINCHON, EWHA, HONGDAE]
+    MenuCategory:
+      type: string
+      enum: [MAIN, FRIED, SOUP, DRY, SIDE, ETC]
+    PartyRequestStatus:
+      type: string
+      enum: [OPEN, MATCHED, CLOSED]
+    OfferStatus:
+      type: string
+      enum: [PENDING, ACCEPTED, REJECTED]
+    StoreCreateResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            result: { $ref: '#/components/schemas/StoreCreateResult' }
+    MenuBulkCreateResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            result: { $ref: '#/components/schemas/MenuBulkCreateResult' }
+    PartyRequestCreateResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            result: { $ref: '#/components/schemas/PartyRequestCreateResult' }
+    PartyRequestListResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            result:
+              type: array
+              items: { $ref: '#/components/schemas/PartyRequestSummary' }
+    PartyRequestDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            result: { $ref: '#/components/schemas/PartyRequestDetail' }
+    OfferCreateResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            result: { $ref: '#/components/schemas/OfferCreateResult' }
+    OfferListResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            result:
+              type: array
+              items: { $ref: '#/components/schemas/OfferSummary' }
+    DealResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            result: { $ref: '#/components/schemas/DealResult' }
+    RecommendationResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            result: { $ref: '#/components/schemas/RecommendationResult' }
+    SuccessEnvelope:
+      type: object
+      required: [isSuccess, code, message]
+      properties:
+        isSuccess: { type: boolean, example: true }
+        code: { type: string, example: COMMON200 }
+        message: { type: string, example: 성공적으로 처리했습니다. }
+        result: {}
+        error: { nullable: true, example: null }
