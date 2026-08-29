@@ -4,10 +4,12 @@ import com.example.shinchonton_backend.domain.store.dto.StoreRequestDto;
 import com.example.shinchonton_backend.domain.store.dto.StoreResponseDto;
 import com.example.shinchonton_backend.domain.store.service.MenuCommandService;
 import com.example.shinchonton_backend.domain.store.service.StoreCommandService;
+import com.example.shinchonton_backend.domain.store.service.StoreQueryService;
 import com.example.shinchonton_backend.global.apiPayload.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,6 +26,7 @@ public class StoreController {
 
     private final StoreCommandService storeCommandService;
     private final MenuCommandService menuCommandService;
+    private final StoreQueryService storeQueryService;
 
     /**
      * 가게 등록
@@ -66,5 +69,41 @@ public class StoreController {
                         "메뉴가 등록되었습니다.",
                         response
                 ));
+    }
+
+    /**
+     * 내 가게 목록 조회
+     */
+    @GetMapping("/mine")
+    public ResponseEntity<ApiResponse<StoreResponseDto.Mine>> getMyStores(
+            @RequestHeader("X-Member-Id") Long memberId
+    ) {
+        StoreResponseDto.Mine response =
+                storeQueryService.getMyStores(memberId);
+
+        return ResponseEntity.ok(
+                ApiResponse.onSuccess(
+                        "내 가게 목록을 조회했습니다.",
+                        response
+                )
+        );
+    }
+
+    /**
+     * 가게 상세 조회
+     */
+    @GetMapping("/{storeId}")
+    public ResponseEntity<ApiResponse<StoreResponseDto.Detail>> getStoreDetail(
+            @PathVariable Long storeId
+    ) {
+        StoreResponseDto.Detail response =
+                storeQueryService.getDetail(storeId);
+
+        return ResponseEntity.ok(
+                ApiResponse.onSuccess(
+                        "가게 정보를 조회했습니다.",
+                        response
+                )
+        );
     }
 }

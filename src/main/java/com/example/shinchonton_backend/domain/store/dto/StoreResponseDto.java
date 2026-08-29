@@ -37,6 +37,67 @@ public final class StoreResponseDto {
         }
     }
 
+    public record Summary(
+            Long storeId,
+            String name,
+            Region region,
+            String address,
+            int maxCapacity
+    ) {
+        public static Summary from(Store store) {
+            return new Summary(
+                    store.getId(),
+                    store.getName(),
+                    store.getRegion(),
+                    store.getAddress(),
+                    store.getMaxCapacity()
+            );
+        }
+    }
+
+    public record Mine(
+            List<Summary> stores
+    ) {
+        public static Mine from(List<Store> stores) {
+            return new Mine(
+                    stores.stream()
+                            .map(Summary::from)
+                            .toList()
+            );
+        }
+    }
+
+    public record Detail(
+            Long storeId,
+            String name,
+            Region region,
+            String address,
+            int maxCapacity,
+            LocalTime openTime,
+            LocalTime closeTime,
+            String description,
+            List<Menu> menus
+    ) {
+        public static Detail of(
+                Store store,
+                List<MenuItem> menuItems
+        ) {
+            return new Detail(
+                    store.getId(),
+                    store.getName(),
+                    store.getRegion(),
+                    store.getAddress(),
+                    store.getMaxCapacity(),
+                    store.getOpenTime(),
+                    store.getCloseTime(),
+                    store.getDescription(),
+                    menuItems.stream()
+                            .map(Menu::from)
+                            .toList()
+            );
+        }
+    }
+
     public record MenuBulkCreate(
             Long storeId,
             int createdCount,
