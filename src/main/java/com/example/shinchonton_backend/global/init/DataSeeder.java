@@ -41,7 +41,7 @@ public class DataSeeder implements CommandLineRunner {
                         "010-1111-1111"
                 )));
 
-        if (storeRepository.findAllByMerchantId(merchant.getId()).isEmpty()) {
+        if (storeRepository.findAllByMerchantIdOrderByCreatedAtDesc(merchant.getId()).isEmpty())  {
             storeRepository.save(Store.register(
                     merchant,
                     "신촌 테스트포차",
