@@ -15,7 +15,13 @@ import java.util.Optional;
 
 public interface PartyRequestRepository extends JpaRepository<PartyRequest, Long> {
 
-    List<PartyRequest> findAllByStudent_IdOrderByCreatedAtDesc(Long studentId);
+    @Query("""
+            select request
+            from PartyRequest request
+            where request.student.id = :userId
+            order by request.id desc
+            """)
+    List<PartyRequest> findByUserIdOrderByIdDesc(@Param("userId") Long userId);
 
     @Query("""
             select request
@@ -26,7 +32,7 @@ public interface PartyRequestRepository extends JpaRepository<PartyRequest, Long
               and (:region is null
                    or request.preferredRegion is null
                    or request.preferredRegion = :region)
-            order by request.createdAt desc
+            order by request.id desc
             """)
     List<PartyRequest> findAllAvailableForStore(
             @Param("status") PartyRequestStatus status,
